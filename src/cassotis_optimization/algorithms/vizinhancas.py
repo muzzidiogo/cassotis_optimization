@@ -41,3 +41,63 @@ def n1_replace(
     new_composition[pile_id] = tuple(current_composition)
 
     return Solution(composition=new_composition)
+
+def n2_swap(
+    solution: Solution,
+    instance: ProblemInstance,
+    rng: random.Random,
+) -> Solution:
+    """Swap two truck slots from different piles while preserving eligibility."""
+
+    pile_ids = list(instance.piles.keys())
+
+    valid_moves: list[tuple[str, int, str, int]] = []
+
+    for i, pile_a_id in enumerate(pile_ids):
+        pile_a = instance.piles[pile_a_id]
+        composition_a = solution.composition[pile_a_id]
+
+        for pile_b_id in pile_ids[i + 1:]:
+            pile_b = instance.piles[pile_b_id]
+            composition_b = solution.composition[pile_b_id]
+
+            for pos_a, mineral_a_id in enumerate(composition_a):
+                mineral_a = instance.minerals[mineral_a_id]
+
+                for pos_b, mineral_b_id in enumerate(composition_b):
+                    if mineral_a_id == mineral_b_id:
+                        continue
+
+                    mineral_b = instance.minerals[mineral_b_id]
+
+                    if (
+                        mineral_a.is_eligible(pile_b.group_id)
+                        and mineral_b.is_eligible(pile_a.group_id)
+                    ):
+                        valid_moves.append(
+                            (
+                                pile_a_id,
+                                pos_a,
+                                pile_b_id,
+                                pos_b,
+                            )
+                        )
+
+    if not valid_moves:
+        return solution
+
+    pile_a_id, pos_a, pile_b_id, pos_b = rng.choice(valid_moves)
+
+    composition_a = list(solution.composition[pile_a_id])
+    composition_b = list(solution.composition[pile_b_id])
+
+    composition_a[pos_a], composition_b[pos_b] = (
+        composition_b[pos_b],
+        composition_a[pos_a],
+    )
+
+    new_composition = dict(solution.composition)
+    new_composition[pile_a_id] = tuple(composition_a)
+    new_composition[pile_b_id] = tuple(composition_b)
+
+    return Solution(composition=new_composition)
