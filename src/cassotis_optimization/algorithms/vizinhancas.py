@@ -101,3 +101,107 @@ def n2_swap(
     new_composition[pile_b_id] = tuple(composition_b)
 
     return Solution(composition=new_composition)
+
+def n3_relocate_replace(
+    solution: Solution,
+    instance: ProblemInstance,
+    rng: random.Random,
+) -> Solution:
+    """
+    Relocate one mineral between two piles while introducing another mineral.
+
+    Given:
+        pile_a: m_x
+        pile_b: m_y
+
+    The move produces:
+        pile_a: m_z
+        pile_b: m_x
+
+    where m_z, m_x and m_y are distinct minerals.
+
+    Mass and eligibility are preserved by construction.
+    Global mineral usage may change.
+    """
+
+    pile_ids = list(instance.piles.keys())
+
+    valid_moves: list[tuple[str, int, str, int, str]] = []
+
+    # Unlike N2, the direction matters:
+    # pile_a -> pile_b is different from pile_b -> pile_a.
+    for pile_a_id in pile_ids:
+        pile_a = instance.piles[pile_a_id]
+        composition_a = solution.composition[pile_a_id]
+
+        for pile_b_id in pile_ids:
+            if pile_a_id == pile_b_id:
+                continue
+
+            pile_b = instance.piles[pile_b_id]
+            composition_b = solution.composition[pile_b_id]
+
+            for pos_a, mineral_x_id in enumerate(composition_a):
+                mineral_x = instance.minerals[mineral_x_id]
+
+                # m_x will be moved to pile_b.
+                if not mineral_x.is_eligible(pile_b.group_id):
+                    continue
+
+                for pos_b, mineral_y_id in enumerate(composition_b):
+
+                    # If m_x == m_y, the movement in pile_b would
+                    # have no effect and N3 would degenerate into N1.
+                    if mineral_x_id == mineral_y_id:
+                        continue
+
+                    for mineral_z_id, mineral_z in instance.minerals.items():
+
+                        # Keep N3 distinct from N1 and N2.
+                        if mineral_z_id in {
+                            mineral_x_id,
+                            mineral_y_id,
+                        }:
+                            continue
+
+                        # m_z will enter pile_a.
+                        if not mineral_z.is_eligible(pile_a.group_id):
+                            continue
+
+                        valid_moves.append(
+                            (
+                                pile_a_id,
+                                pos_a,
+                                pile_b_id,
+                                pos_b,
+                                mineral_z_id,
+                            )
+                        )
+
+    if not valid_moves:
+        return solution
+
+    (
+        pile_a_id,
+        pos_a,
+        pile_b_id,
+        pos_b,
+        mineral_z_id,
+    ) = rng.choice(valid_moves)
+
+    composition_a = list(solution.composition[pile_a_id])
+    composition_b = list(solution.composition[pile_b_id])
+
+    mineral_x_id = composition_a[pos_a]
+
+    # Chain:
+    # pile_a: m_x -> m_z
+    # pile_b: m_y -> m_x
+    composition_a[pos_a] = mineral_z_id
+    composition_b[pos_b] = mineral_x_id
+
+    new_composition = dict(solution.composition)
+    new_composition[pile_a_id] = tuple(composition_a)
+    new_composition[pile_b_id] = tuple(composition_b)
+
+    return Solution(composition=new_composition)
