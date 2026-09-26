@@ -103,9 +103,37 @@ Ver `docs/feasibility_strategy.md`.
 
 ## D008 — Terceira vizinhança N3
 
-**Status:** PENDENTE
+**Status:** CONSOLIDADA
 
-A escolha será feita após consolidar a política de inviabilidade e analisar a complementaridade com N1 e N2.
+**Decisão:** utilizar uma vizinhança de realocação com substituição em cadeia.
+
+O movimento seleciona duas pilhas distintas \(p_a\) e \(p_b\), contendo respectivamente os minérios \(m_x\) e \(m_y\), e um novo minério \(m_z\). O movimento realiza:
+
+\[
+p_a: m_x \rightarrow m_z
+\]
+
+\[
+p_b: m_y \rightarrow m_x
+\]
+
+desde que \(m_z\) seja elegível para \(p_a\) e \(m_x\) seja elegível para \(p_b\).
+
+**Alternativas consideradas:** ciclo entre três pilhas, dupla substituição dentro de uma pilha e movimentos guiados diretamente pela medida de inviabilidade \(V(X)\).
+
+**Motivação:** N3 combina, em uma única transição, duas características que aparecem separadamente em N1 e N2: alteração da composição global de minérios e realocação entre pilhas. O movimento pode modificar diretamente \(f_1\), \(f_2\) e \(f_3\), sendo também adequado para reutilização nas etapas multiobjetivo.
+
+A execução coordenada evita depender da aceitação de estados intermediários que seriam necessários ao decompor o movimento em aplicações sucessivas de outras vizinhanças.
+
+**Impacto:** a massa das pilhas e a elegibilidade são preservadas por construção. O consumo global de \(m_x\) permanece inalterado, enquanto o consumo de \(m_y\) diminui em uma unidade e o de \(m_z\) aumenta em uma unidade. Portanto, o movimento pode gerar violações de disponibilidade e qualidade, que deverão ser tratadas pela política definida em D007.
+
+O movimento pode alterar o custo segundo:
+
+\[
+\Delta f_1 = 2000(c_z-c_y).
+\]
+
+A implementação da vizinhança permanece pendente.
 
 ---
 

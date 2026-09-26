@@ -17,9 +17,9 @@
 - [x] representação da solução
 - [x] heurística construtiva - baseline implementada
 - [ ] VNS ou GVNS
-- [ ] N1
-- [ ] N2
-- [ ] N3 com justificativa
+- [x] N1
+- [x] N2
+- [ ] N3 definida e justificada; implementação pendente
 - [ ] perturbação
 - [ ] busca local
 - [ ] tratamento de inviabilidade

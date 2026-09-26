@@ -191,3 +191,9 @@ A política final de tratamento dessas inviabilidades está deliberadamente pend
 A implementação inicial constrói uma solução que satisfaz por construção a massa das pilhas, a elegibilidade dos minérios e os limites mínimo e máximo globais de disponibilidade. Inicialmente são alocados os usos mínimos obrigatórios de cada minério. Em seguida, os slots restantes são preenchidos iterativamente com os minérios elegíveis de menor custo que ainda possuam disponibilidade.
 
 Os limites de SiO₂ e Al₂O₃ não são considerados pela heurística construtiva baseline; portanto, a solução inicial pode ser inviável quanto à qualidade.
+
+### 10. N3 — realocação com substituição em cadeia
+
+A terceira vizinhança definida pelo grupo combina realocação e substituição. Para duas pilhas distintas, o minério de uma posição da primeira pilha é transferido para uma posição da segunda pilha, enquanto sua posição original recebe um novo minério elegível.
+
+Esse movimento preserva massa e elegibilidade, mas pode alterar disponibilidade global, custo e qualidade. Diferentemente de N2, a composição global de minérios pode mudar.
