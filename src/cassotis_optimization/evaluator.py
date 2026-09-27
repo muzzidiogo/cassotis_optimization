@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .domain import ProblemInstance, TONNES_PER_KT, TRUCK_CAPACITY_KT
+from .domain import TONNES_PER_KT, TRUCK_CAPACITY_KT, ProblemInstance
 from .solution import Solution
 
 

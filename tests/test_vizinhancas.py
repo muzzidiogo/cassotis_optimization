@@ -7,7 +7,6 @@ from cassotis_optimization.algorithms.constructive import (
 from cassotis_optimization.algorithms.vizinhancas import n1_replace, n2_swap, n3_relocate_replace
 from cassotis_optimization.io import load_instance
 
-
 DATA_DIR = Path("data/example_instance")
 
 

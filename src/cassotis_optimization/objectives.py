@@ -4,7 +4,6 @@ from typing import Literal
 
 from .evaluator import Evaluation
 
-
 ObjectiveName = Literal["f1", "f2", "f3"]
 
 

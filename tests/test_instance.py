@@ -3,7 +3,6 @@ from pathlib import Path
 from cassotis_optimization.io import load_instance
 from cassotis_optimization.validation import validate_instance
 
-
 DATA_DIR = Path("data/example_instance")
 
 

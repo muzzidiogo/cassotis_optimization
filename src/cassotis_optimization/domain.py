@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-
 TRUCK_CAPACITY_KT = 2.0
 TONNES_PER_KT = 1000.0
 
