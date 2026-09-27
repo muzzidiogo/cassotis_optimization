@@ -54,6 +54,10 @@ def main() -> None:
     parser.add_argument("--instance", default="data/example_instance")
     parser.add_argument("--out", default="results/mono")
     parser.add_argument("--budget", type=int, default=GVNSConfig.max_evaluations)
+    parser.add_argument("--sample-size", type=int, default=GVNSConfig.sample_size)
+    parser.add_argument("--p1-positions", type=int, default=GVNSConfig.p1_positions)
+    parser.add_argument("--p2-chain-length", type=int, default=GVNSConfig.p2_chain_length)
+    parser.add_argument("--p3-piles", type=int, default=GVNSConfig.p3_piles)    
     parser.add_argument("--seeds", type=int, nargs="+", required=True)
     parser.add_argument("--objectives", nargs="+", default=list(OBJECTIVES))
     args = parser.parse_args()
@@ -70,7 +74,15 @@ def main() -> None:
         runs_by_objective[objective] = []
 
         for seed in args.seeds:
-            config = GVNSConfig(objective=objective, seed=seed, max_evaluations=args.budget)
+            config = GVNSConfig(
+                objective=objective,
+                seed=seed,
+                max_evaluations=args.budget,
+                sample_size=args.sample_size,
+                p1_positions=args.p1_positions,
+                p2_chain_length=args.p2_chain_length,
+                p3_piles=args.p3_piles,
+            )
             result = run_gvns(instance, config)
             evaluation = result.best.evaluation
 

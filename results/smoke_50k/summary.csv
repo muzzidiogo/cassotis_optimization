@@ -1,0 +1,4 @@
+run_id,git_commit,instance,objective,seed,algorithm,stopping_rule,evaluation_budget,evaluations,runtime_seconds,iterations,improvements,first_feasible_at,feasible,objective_value,f1,f2,f3,total_violation
+f1_seed3001,52995b1-dirty,data/example_instance,f1,3001,GVNS,max_evaluations,50000,50000,5.675,10,2,289,True,60580000.0,60580000.0,6.825339529528776,5.211268837737591,0.0
+f2_seed3001,52995b1-dirty,data/example_instance,f2,3001,GVNS,max_evaluations,50000,50000,6.159,6,0,5128,True,2.4059814200829974,63700000.0,2.4059814200829974,3.3669009875867935,0.0
+f3_seed3001,52995b1-dirty,data/example_instance,f3,3001,GVNS,max_evaluations,50000,50000,5.558,4,3,5173,True,1.4548251327832684,65660000.0,5.5276825694883,1.4548251327832684,0.0

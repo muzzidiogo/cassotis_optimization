@@ -123,7 +123,8 @@ def p2_ejection_chain(
             assignments[slots[i]] = minerals[i - 1]
         return _with_assignments(solution, assignments)
 
-    return p1_random_replacements(solution, instance, rng, chain_length)
+    return solution
+    # return p1_random_replacements(solution, instance, rng, chain_length)
 
 
 def p3_group_permutation(
