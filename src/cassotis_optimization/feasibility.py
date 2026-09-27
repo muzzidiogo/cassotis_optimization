@@ -83,3 +83,21 @@ def normalized_violation(
         availability_min=availability_min,
         availability_max=availability_max,
     )
+
+def feasibility_rule_key(
+    feasible: bool,
+    violation: float,
+    objective: float,
+) -> tuple[int, float, float]:
+    """
+    Sort key for the feasibility rule adopted in D007 (smaller is better).
+
+    1. a feasible solution beats an infeasible one;
+    2. between two feasible solutions, the smaller objective wins;
+    3. between two infeasible solutions, the smaller normalized violation wins
+       (objective used only as a tie-breaker).
+    """
+
+    if feasible:
+        return (0, objective, 0.0)
+    return (1, violation, objective)

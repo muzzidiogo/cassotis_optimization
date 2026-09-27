@@ -6,30 +6,29 @@ O objetivo é desenvolver, documentar e avaliar uma solução baseada em VNS/GVN
 
 ## Estado atual
 
-Este repositório está na **M0 — especificação formal e infraestrutura do projeto**.
+Entrega 1 (mono-objetivo): formulação, representação, heurística construtiva, vizinhanças N1/N2/N3, perturbações P1/P2/P3, tratamento de inviabilidade, GVNS e script de experimentos implementados. Os resultados finais ainda não foram gerados: faltam calibrar os parâmetros experimentais, congelar a configuração e escolher as seeds finais (D017).
 
-Já estão consolidados:
+Consolidados:
 
-- variável de decisão em número de caminhões;
-- capacidade fixa de 2 kt por caminhão;
+- variável de decisão em número de caminhões (2 kt cada);
 - disponibilidade mínima e máxima global por minério, considerando as 10 pilhas;
-- representação computacional por posições de caminhões nas pilhas;
-- massa preservada por construção;
+- representação por posições de caminhão, que preserva massa;
 - elegibilidade preservada pelos operadores de vizinhança;
-- formulação dos três objetivos;
-- FeT mantido no domínio, mas não ativo como restrição na instância de exemplo.
+- FeT mantido no domínio, mas não ativo como restrição na instância de exemplo;
+- N3: realocação com substituição em cadeia (D008);
+- heurística construtiva sugerida no enunciado (D013);
+- tratamento de inviabilidade: regra de viabilidade (D007);
+- GVNS com VND N1 → N2 → N3, primeira melhoria (D009, D014);
+- SHAKE com estruturas próprias P1, P2, P3 (D015);
+- aceitação por melhoria estrita (D016);
+- parada por número de avaliações (D010);
+- separação entre seeds de calibração e seeds finais (D017).
 
-Ainda **não** estão consolidados:
+Ainda experimentais: orçamento (200 mil avaliações), tamanho da amostra de N2/N3 (500), tamanhos de P1/P2/P3 e as seeds finais.
 
-- política final de tratamento de inviabilidade;
-- terceira vizinhança N3;
-- escolha entre VNS e GVNS;
-- organização final da busca local;
-- perturbação;
-- critérios de aceitação e parada;
-- parâmetros experimentais.
+As decisões da GVNS estão explicadas em linguagem direta em [`docs/gvns_decisoes.md`](docs/gvns_decisoes.md). O registro formal está em [`docs/decision_log.md`](docs/decision_log.md).
 
-As decisões e seus status são mantidos em [`docs/decision_log.md`](docs/decision_log.md).
+Pendentes: resultados finais da Entrega 1, Entrega 2 (multiobjetivo), Entrega 3 (decisão multicritério e Streamlit), relatório e apresentações.
 
 ## Fonte do problema
 
@@ -41,42 +40,33 @@ Há também uma clarificação da professora sobre disponibilidade: os limites m
 
 ```text
 .
-├── AGENTS.md
-├── CONTRIBUTING.md
-├── README.md
-├── pyproject.toml
-├── data/
-│   ├── README.md
-│   └── example_instance/
-│       ├── groups.csv
-│       ├── minerals.csv
-│       └── piles.csv
+├── data/example_instance/        # instância do anexo do enunciado (CSV)
 ├── docs/
-│   ├── decision_log.md
-│   ├── deliverables_checklist.md
-│   ├── experiment_protocol.md
-│   ├── feasibility_strategy.md
+│   ├── decision_log.md           # registro formal das decisões
+│   ├── gvns_decisoes.md          # explicação das decisões da GVNS
 │   ├── problem_formulation.md
+│   ├── feasibility_strategy.md
+│   ├── experiment_protocol.md
+│   ├── deliverables_checklist.md
 │   └── source_notes.md
-├── src/
-│   └── cassotis_optimization/
-│       ├── __init__.py
-│       ├── domain.py
-│       ├── evaluator.py
-│       ├── io.py
-│       ├── solution.py
-│       ├── validation.py
-│       ├── algorithms/
-│       ├── mcda/
-│       └── multiobjective/
+├── src/cassotis_optimization/
+│   ├── domain.py, io.py, validation.py, solution.py
+│   ├── evaluator.py              # núcleo único: custo, qualidade, violações
+│   ├── objectives.py             # seleção de f1/f2/f3
+│   ├── feasibility.py            # violação normalizada e regra de viabilidade
+│   ├── visualization.py          # figuras (convergência, solução)
+│   └── algorithms/
+│       ├── constructive.py       # heurística construtiva
+│       ├── vizinhancas.py        # N1, N2, N3 (enumeração e amostragem uniforme)
+│       ├── perturbacoes.py       # P1, P2, P3 (SHAKE)
+│       └── gvns.py               # GVNS + VND
 ├── scripts/
-│   └── validate_instance.py
+│   ├── validate_instance.py
+│   └── run_mono_experiments.py   # 5 execuções × f1/f2/f3, tabelas e figuras
 ├── tests/
-│   ├── test_evaluator.py
-│   └── test_instance.py
-├── app/
+├── app/                          # Streamlit (Entrega 3)
 ├── notebooks/
-└── results/
+└── results/                      # saídas geradas pelos scripts
 ```
 
 ## Preparação do ambiente
@@ -107,6 +97,27 @@ pip install -e ".[dev,app]"
 python scripts/validate_instance.py
 pytest
 ```
+
+## Experimentos da Entrega 1
+
+```bash
+python scripts/run_mono_experiments.py --seeds S1 S2 S3 S4 S5
+```
+
+As seeds são obrigatórias. As seeds finais serão registradas em D017 antes da rodada oficial. Para um teste rápido:
+
+```bash
+python scripts/run_mono_experiments.py --seeds 1 2 --budget 5000 --out results/teste
+```
+
+O script gera, na pasta de saída (padrão `results/mono/`):
+
+- o JSON de cada execução;
+- `summary.csv` e `summary.md` (mín/std/máx);
+- as curvas de convergência;
+- a figura da melhor solução de cada objetivo.
+
+Parâmetros: `--seeds`, `--budget`, `--objectives`, `--out`.
 
 ## Regra de desenvolvimento
 
