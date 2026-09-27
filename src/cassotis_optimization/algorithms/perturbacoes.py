@@ -124,7 +124,6 @@ def p2_ejection_chain(
         return _with_assignments(solution, assignments)
 
     return solution
-    # return p1_random_replacements(solution, instance, rng, chain_length)
 
 
 def p3_group_permutation(

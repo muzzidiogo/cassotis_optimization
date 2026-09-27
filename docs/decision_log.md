@@ -161,15 +161,21 @@ O movimento pode alterar o custo segundo:
 
 ## D010 — Critério de parada e orçamento experimental
 
-**Status:** CONSOLIDADA (critério); PENDENTE (valor do orçamento)
+**Status:** CONSOLIDADA
 
-**Decisão:** o critério de parada é o número de avaliações de soluções candidatas por execução, igual para f1, f2 e f3, sem critério auxiliar. O tempo é registrado como informação complementar.
+**Decisão:** o critério de parada é um orçamento fixo de **200.000 avaliações de soluções candidatas por execução**, igual para \(f_1\), \(f_2\) e \(f_3\), sem critério auxiliar. O tempo de execução é registrado como informação complementar.
 
-O valor padrão é `GVNSConfig.max_evaluations = 200_000`, configurável por `--budget`. Esse número ainda não foi definido experimentalmente e deve ser revisto antes de congelar a configuração.
+**Alternativas consideradas:** tempo de parede; número de iterações da GVNS; iterações sem melhoria; orçamentos de 50.000 e 100.000 avaliações.
 
-**Alternativas consideradas:** tempo de parede; número de iterações da GVNS; iterações sem melhoria.
+**Motivação:** o número de avaliações independe da máquina, coincide com o eixo x das curvas de convergência e permite comparação justa entre objetivos e execuções.
 
-**Motivação:** o número de avaliações não depende da máquina, coincide com o eixo x das curvas de convergência e permite comparação justa entre objetivos.
+**Evidência experimental:** após a calibração dos demais parâmetros, foram comparados orçamentos de 50.000, 100.000 e 200.000 avaliações usando as mesmas seeds de calibração. Todas as execuções chegaram à região factível. Entre 100.000 e 200.000 avaliações ainda houve melhora média nos três objetivos, aproximadamente:
+
+- \(f_1\): 0,43%;
+- \(f_2\): 0,85%;
+- \(f_3\): 0,29%.
+
+Como ainda havia ganho mensurável após 100.000 avaliações e o custo computacional de 200.000 avaliações permaneceu baixo para a instância estudada, adotou-se 200.000 como orçamento final da Entrega 1.
 
 ---
 
@@ -212,55 +218,56 @@ O valor padrão é `GVNSConfig.max_evaluations = 200_000`, configurável por `--
 
 ## D014 — Busca local: primeira melhoria e VND N1 → N2 → N3
 
-**Status:** CONSOLIDADA (estrutura); PENDENTE (tamanho da amostra)
+**Status:** CONSOLIDADA
 
 **Decisão:**
 
-- busca local de primeira melhoria, repetida até que uma passada não encontre movimento de melhoria, com a vizinhança percorrida em ordem aleatória definida pela semente;
-- VND na ordem N1 → N2 → N3, da vizinhança menor para a maior;
-- movimentos definidos sobre os minérios distintos de cada pilha, porque posições com o mesmo minério geram a mesma solução. O conjunto de soluções alcançáveis é o mesmo das definições do enunciado (por posição);
-- N1 (cerca de 1.100 movimentos distintos) é explorada por completo, então o resultado da busca em N1 é um ótimo local de N1;
-- N2 (cerca de 3.000 movimentos) e N3 (cerca de 10^5) são exploradas por amostra. Em cada passada, sorteiam-se até `sample_size` movimentos **distintos**, uniformemente e sem reposição sobre o espaço de movimentos distintos (`vizinhancas.sample_moves`):
-  - N2: a vizinhança é enumerada e sorteada sem reposição;
-  - N3: os movimentos são agrupados por prefixo (pilha a, pilha b, m_x, m_y). Cada prefixo é sorteado com peso igual ao número de m_z válidos e depois m_z é sorteado uniformemente, o que dá probabilidade igual a cada movimento distinto sem enumerar a vizinhança. Repetições são descartadas até completar a amostra;
-- quando N2 ou N3 terminam sem melhoria, isso significa apenas que nenhum movimento da última amostra melhorou, e não que a solução é um ótimo local dessas vizinhanças.
+- busca local de primeira melhoria, repetida até que uma passada não encontre movimento de melhoria, com ordem definida pela seed;
+- VND na ordem N1 → N2 → N3;
+- N1 explorada completamente;
+- N2 e N3 exploradas por amostragem uniforme, sem reposição, sobre movimentos distintos;
+- `sample_size = 250` movimentos por passada para N2 e N3.
 
-`sample_size = 500` é um valor padrão experimental, configurável em `GVNSConfig`.
+Para N1, uma passada sem melhoria caracteriza ótimo local em N1. Para N2 e N3, uma passada sem melhoria significa apenas que nenhum movimento da amostra analisada melhorou a solução.
 
-**Alternativas consideradas:** melhor melhoria; exploração completa de N2; sorteio por posição (slot), usado na primeira versão.
+**Alternativas consideradas:** melhor melhoria; exploração completa de N2/N3; amostragem baseada em slots; `sample_size` de 250, 500 e 1000.
 
-**Motivação:** melhor melhoria e exploração completa de N3 consumiriam o orçamento em poucos passos. O sorteio por posição dava mais chance aos minérios que ocupam mais posições de uma pilha e podia avaliar o mesmo movimento várias vezes na mesma passada. Por isso foi substituído pelo sorteio uniforme sem repetição.
+**Motivação:** N3 possui uma vizinhança muito grande, tornando a exploração completa incompatível com o orçamento de avaliações. A amostragem sem reposição evita reavaliar movimentos equivalentes e não privilegia minérios apenas por aparecerem em mais posições de uma pilha.
 
-**Evidência:** a calibração feita com a primeira versão (sorteio por posição e SHAKE antigo) não vale para a configuração atual e foi descartada. O tamanho da amostra será recalibrado com seeds de calibração novas (D017).
+**Evidência experimental:** foram comparados `sample_size = 250`, `500` e `1000`. A primeira calibração exploratória foi seguida por uma calibração confirmatória, mantendo a perturbação fixa em P1/P2/P3 = 3/4/5 e utilizando cinco novas seeds de calibração.
+
+O valor `250` apresentou o melhor comportamento global entre os três objetivos: permaneceu competitivo em \(f_1\), obteve os melhores resultados médios na confirmação para \(f_2\) e \(f_3\), e permitiu mais ciclos completos da GVNS dentro do mesmo orçamento de avaliações. Por isso `sample_size = 250` foi consolidado.
 
 ---
 
-## D015 — Perturbação (SHAKE) com estruturas próprias P1, P2, P3
+## D015 — Perturbação (SHAKE) com estruturas próprias P1, P2 e P3
 
-**Status:** CONSOLIDADA (estrutura); PENDENTE (parâmetros)
+**Status:** CONSOLIDADA
 
-**Decisão:** a GVNS tem dois níveis separados:
+**Decisão:** a GVNS utiliza dois níveis separados:
 
-- N1, N2 e N3 são usadas só pela VND, para intensificação;
-- o SHAKE usa estruturas próprias, de intensidade crescente (`algorithms/perturbacoes.py`), com k_max = 3.
+- N1, N2 e N3 são estruturas de vizinhança da VND, responsáveis pela intensificação;
+- P1, P2 e P3 são estruturas próprias do SHAKE, responsáveis pela diversificação.
 
-As estruturas são:
+As perturbações consolidadas são:
 
-- **P1 — perturbação pequena:** troca o minério de `p1_positions = 2` posições sorteadas por outro minério elegível;
-- **P2 — movimentos encadeados:** cadeia de ejeção em `p2_chain_length = 3` pilhas distintas. A primeira pilha recebe um minério novo, cada pilha seguinte recebe o minério que saiu da anterior, e o minério da última pilha sai da solução. A elegibilidade é exigida em cada elo;
-- **P3 — perturbação forte:** permutação cíclica de uma posição de cada uma de `p3_piles = 5` pilhas do mesmo grupo de sinter. Pilhas do mesmo grupo têm a mesma elegibilidade, então qualquer minério pode circular entre elas. O consumo global não muda; a qualidade de até 5 pilhas muda de uma vez.
+- **P1 — perturbação pequena:** substituição de `p1_positions = 3` posições por minérios elegíveis;
+- **P2 — cadeia de ejeção:** cadeia envolvendo `p2_chain_length = 4` pilhas distintas, preservando elegibilidade em cada elo;
+- **P3 — perturbação forte:** permutação cíclica de uma posição em `p3_piles = 5` pilhas do mesmo grupo de sinter.
 
-As perturbações sorteiam posições (caminhões) uniformemente, seguindo o enunciado. Isso é intencional: é um sorteio de caminhão, e não uma exploração de vizinhança.
+Logo, as intensidades adotadas são:
 
-A solução perturbada é avaliada (conta no orçamento) e passada à VND.
+\[
+P1/P2/P3 = 3/4/5.
+\]
 
-**Alternativas consideradas:** k × 3 movimentos aleatórios de N1, N2 e N3 (primeira versão, que misturava as vizinhanças da VND com a intensidade da perturbação); reconstrução parcial de pilhas.
+P1 e P2 podem alterar o consumo global de minérios e, consequentemente, gerar violações de disponibilidade. P3 preserva o consumo global, pois apenas redistribui minérios entre as cinco pilhas do mesmo grupo. Eventuais inviabilidades são tratadas pela regra definida em D007.
 
-**Motivação:** separar intensificação (N_ℓ) de diversificação (P_k), como no pseudocódigo da GVNS da Aula 02. Quando a VND não melhora, o SHAKE passa progressivamente para regiões mais distantes: P1 altera 2 caminhões, P2 até 3 pilhas em cadeia, P3 até 5 pilhas.
+**Alternativas consideradas:** o SHAKE original baseado em aplicações aleatórias de N1/N2/N3; configurações P1/P2/P3 = 1/2/5, 2/3/5 e 3/4/5; reconstrução parcial de pilhas.
 
-**Consequências:** P1 e P2 podem violar a disponibilidade; P3 não. As violações são tratadas por D007.
+**Motivação:** separar as vizinhanças usadas para refinamento das estruturas de perturbação torna explícita a diferença entre intensificação e diversificação. A intensidade crescente 3 → 4 → 5 também permite aumentar progressivamente a distância em relação à solução corrente quando níveis menores não produzem melhora.
 
-**Evidência:** pendente. Os valores 2, 3 e 5 são padrões experimentais, configuráveis em `GVNSConfig`.
+**Evidência experimental:** a calibração comparou as configurações 1/2/5, 2/3/5 e 3/4/5 em conjunto com diferentes tamanhos de amostra. A configuração 3/4/5 apresentou comportamento competitivo e equilibrado nos três objetivos e foi mantida na calibração confirmatória. Com essa configuração fixa, `sample_size = 250` também se mostrou adequado. Assim, os valores 3/4/5 foram consolidados para as execuções finais.
 
 ---
 
@@ -278,20 +285,28 @@ A solução perturbada é avaliada (conta no orçamento) e passada à VND.
 
 ## D017 — Sementes e separação entre calibração e resultados finais
 
-**Status:** CONSOLIDADA (separação); PENDENTE (seeds finais)
+**Status:** CONSOLIDADA
 
 **Decisão:**
 
-- calibração e resultados finais usam conjuntos de seeds disjuntos;
-- as 5 seeds finais serão escolhidas e registradas aqui **depois** de congelar o algoritmo e os parâmetros, e **antes** de gerar os resultados finais;
-- elas devem ser diferentes de todas as seeds já usadas:
-  - 1–5 (rodada descartada, feita com a primeira versão);
-  - 1001–1003 (calibração da primeira versão);
-  - 2001 (verificação da versão atual);
-  - as dos testes automatizados (0, 1, 3, 5, 7, 11, 13, 17, 21 e 42);
-- os resultados finais entram num commit ou PR separado da implementação;
-- o desvio-padrão reportado é o amostral (n−1). A construtiva é determinística, então as execuções diferem apenas pela seed da GVNS.
+- calibração e resultados finais utilizam conjuntos de seeds distintos;
+- o algoritmo e todos os parâmetros foram congelados antes da definição das seeds finais;
+- as cinco seeds oficiais da Entrega 1 são:
 
-`scripts/run_mono_experiments.py` exige `--seeds` e não tem seeds padrão, para evitar que resultados finais sejam gerados sem querer.
+\[
+2016,\ 2017,\ 2018,\ 2019,\ 2020.
+\]
 
-**Motivação:** aplicar D011. As seeds 1–5 já tiveram os resultados observados, então não podem ser as seeds finais.
+- cada uma será utilizada para \(f_1\), \(f_2\) e \(f_3\), totalizando 15 execuções finais;
+- os resultados finais serão gerados com a mesma configuração da GVNS:
+  - `max_evaluations = 200000`;
+  - `sample_size = 250`;
+  - `p1_positions = 3`;
+  - `p2_chain_length = 4`;
+  - `p3_piles = 5`;
+- o desvio-padrão reportado será o amostral (\(n-1\));
+- os resultados finais serão armazenados separadamente dos resultados de calibração.
+
+**Motivação:** separar desenvolvimento, calibração e execução final reduz seleção oportunista de configurações e permite reprodução exata dos experimentos.
+
+**Seeds anteriores não utilizadas como seeds finais:** seeds empregadas em testes automatizados, smoke tests e calibrações, incluindo 1–5, 1001–1003, 3001, 3101–3103 e 3201–3205.
